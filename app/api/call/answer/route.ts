@@ -32,7 +32,7 @@ function handleAnswer(req: NextRequest) {
   const host = req.headers.get("host") ?? "vedantu-ananya.vercel.app";
   const sid = student?.id ?? "arjun";
   const audioUrl = `${proto}://${host}/api/voice/${sid}`;
-  const processUrl = `${proto}://${host}/api/call/process?studentId=${sid}&turn=1`;
+  const processUrl = `${proto}://${host}/api/call/process?studentId=${sid}&amp;turn=1`;
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
     <Play>${audioUrl}</Play>

@@ -94,7 +94,8 @@ export async function POST(req: NextRequest) {
     .join("||");
 
   const replyEncoded = encodeURIComponent(reply);
-  const nextUrl = `${baseUrl}/api/call/process?studentId=${studentId}&turn=${turn + 1}&h=${encodeURIComponent(newHistoryParam)}`;
+  const nextUrlPlain = `${baseUrl}/api/call/process?studentId=${studentId}&turn=${turn + 1}&h=${encodeURIComponent(newHistoryParam)}`;
+  const nextUrl = nextUrlPlain.replace(/&/g, "&amp;");
 
   // After max 8 turns, wrap up
   if (turn >= 8) {
