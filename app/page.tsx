@@ -62,7 +62,7 @@ export default function Home() {
         <div className="max-w-4xl mx-auto px-5 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-xl bg-[#FFB400] flex items-center justify-center shadow-sm">
+              <div className="w-9 h-9 rounded-xl bg-[#FF6F00] flex items-center justify-center shadow-sm">
                 <svg viewBox="0 0 20 20" fill="none" className="w-5 h-5">
                   <path d="M4 5l6 10 6-10" stroke="#0F172A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
@@ -84,8 +84,8 @@ export default function Home() {
 
         {/* ── Page title ──────────────────────────────────────────── */}
         <div className="mb-7">
-          <div className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-wider uppercase text-[#B07A00] bg-[#FFF6DA] border border-[#FFE08A] rounded-full px-2.5 py-1 mb-3">
-            <span className="w-1 h-1 rounded-full bg-[#FFB400]" />
+          <div className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-wider uppercase text-[#C24A00] bg-[#FFF0E5] border border-[#FFCCA8] rounded-full px-2.5 py-1 mb-3">
+            <span className="w-1 h-1 rounded-full bg-[#FF6F00]" />
             AI Parent Engagement Agent
           </div>
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Ananya is on call.</h1>
@@ -102,7 +102,7 @@ export default function Home() {
               onClick={() => setActiveTab(tab)}
               className={`px-4 pb-3 pt-1 text-sm font-semibold border-b-2 transition-all ${
                 activeTab === tab
-                  ? "border-[#FFB400] text-slate-900"
+                  ? "border-[#FF6F00] text-slate-900"
                   : "border-transparent text-slate-400 hover:text-slate-700"
               }`}
             >
@@ -131,7 +131,7 @@ export default function Home() {
                   <div className="px-5 pt-5 pb-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#FFE08A] to-[#FFB400] flex items-center justify-center text-slate-900 font-bold text-base flex-shrink-0 shadow-sm">
+                        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#FFCCA8] to-[#FF6F00] flex items-center justify-center text-slate-900 font-bold text-base flex-shrink-0 shadow-sm">
                           {s.studentName[0]}
                         </div>
                         <div>
@@ -153,7 +153,7 @@ export default function Home() {
                           {sc.label}
                         </span>
                         <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${
-                          isToday ? "bg-[#FFF6DA] text-[#B07A00] border border-[#FFE08A]" : "bg-slate-100 text-slate-500"
+                          isToday ? "bg-[#FFF0E5] text-[#C24A00] border border-[#FFCCA8]" : "bg-slate-100 text-slate-500"
                         }`}>
                           {s.scheduledAt}
                         </span>
@@ -180,7 +180,7 @@ export default function Home() {
                       placeholder="+91 phone number"
                       value={phoneInput[s.id] ?? ""}
                       onChange={(e) => setPhoneInput((p) => ({ ...p, [s.id]: e.target.value }))}
-                      className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#FFB400]/40 focus:border-[#FFB400] min-w-0 transition-all"
+                      className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#FF6F00]/40 focus:border-[#FF6F00] min-w-0 transition-all"
                     />
                     <button
                       onClick={() => triggerCall(s.id)}
@@ -212,9 +212,9 @@ export default function Home() {
                     </div>
                   )}
                   {cs === "done" && (
-                    <div className="px-5 py-2.5 bg-[#FFF6DA] border-t border-[#FFE08A] flex items-center justify-between">
-                      <span className="text-xs font-bold text-[#8A5C00]">✓ Call completed</span>
-                      <span className="text-xs font-medium text-[#B07A00]">Next call in 7 days</span>
+                    <div className="px-5 py-2.5 bg-[#FFF0E5] border-t border-[#FFCCA8] flex items-center justify-between">
+                      <span className="text-xs font-bold text-[#8A3500]">✓ Call completed</span>
+                      <span className="text-xs font-medium text-[#C24A00]">Next call in 7 days</span>
                     </div>
                   )}
                   {cs === "error" && (
@@ -233,8 +233,8 @@ export default function Home() {
           <div className="space-y-4">
 
             {/* Info banner */}
-            <div className="bg-gradient-to-br from-[#FFF6DA] to-white border border-[#FFE08A]/70 rounded-2xl p-5 flex gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-[#FFB400] flex items-center justify-center flex-shrink-0 shadow-sm">
+            <div className="bg-gradient-to-br from-[#FFF0E5] to-white border border-[#FFCCA8]/70 rounded-2xl p-5 flex gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-[#FF6F00] flex items-center justify-center flex-shrink-0 shadow-sm">
                 <PhoneIcon className="w-5 h-5 text-slate-900" />
               </div>
               <div>
@@ -273,7 +273,7 @@ export default function Home() {
                     placeholder="+91 98765 43210"
                     value={counsellingPhone}
                     onChange={(e) => setCounsellingPhone(e.target.value)}
-                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#FFB400]/40 focus:border-[#FFB400] transition-all"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#FF6F00]/40 focus:border-[#FF6F00] transition-all"
                   />
                 </div>
 
@@ -311,8 +311,8 @@ export default function Home() {
 
             {/* Next scheduled */}
             <div className="bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm">
-              <div className="w-10 h-10 rounded-xl bg-[#FFF6DA] border border-[#FFE08A] flex items-center justify-center flex-shrink-0">
-                <svg className="w-4 h-4 text-[#B07A00]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-10 h-10 rounded-xl bg-[#FFF0E5] border border-[#FFCCA8] flex items-center justify-center flex-shrink-0">
+                <svg className="w-4 h-4 text-[#C24A00]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
               </div>
