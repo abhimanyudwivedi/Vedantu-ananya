@@ -1,8 +1,10 @@
 import { NextRequest } from "next/server";
 import { STUDENTS } from "@/lib/students";
+import textToSpeech from "@google-cloud/text-to-speech";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 30;
 
 function buildFullMessage(studentId: string): string {
   const student = STUDENTS.find((s) => s.id === studentId);
@@ -20,37 +22,46 @@ function buildFullMessage(studentId: string): string {
   ].join(" ");
 }
 
-export async function GET(req: NextRequest, { params }: { params: Promise<{ studentId: string }> }) {
+function getTtsClient() {
+  const credsJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+  if (credsJson) {
+    return new textToSpeech.TextToSpeechClient({
+      credentials: JSON.parse(credsJson),
+    });
+  }
+  return new textToSpeech.TextToSpeechClient();
+}
+
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ studentId: string }> }) {
   const { studentId } = await params;
   const text = buildFullMessage(studentId);
 
-  const response = await fetch(
-    `https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVENLABS_VOICE_ID ?? "9BWtsMINqrJLrRacOk9x"}`,
-    {
-      method: "POST",
-      headers: {
-        "xi-api-key": process.env.ELEVENLABS_API_KEY!,
-        "Content-Type": "application/json",
-        Accept: "audio/mpeg",
+  try {
+    const client = getTtsClient();
+    const [response] = await client.synthesizeSpeech({
+      input: { text },
+      voice: {
+        languageCode: "hi-IN",
+        name: "hi-IN-Neural2-A",
+        ssmlGender: "FEMALE",
       },
-      body: JSON.stringify({
-        text,
-        model_id: "eleven_multilingual_v2",
-        voice_settings: { stability: 0.5, similarity_boost: 0.8, style: 0.35, use_speaker_boost: true },
-      }),
-    }
-  );
+      audioConfig: {
+        audioEncoding: "MP3",
+        speakingRate: 0.95,
+        pitch: 0.5,
+      },
+    });
 
-  if (!response.ok) {
-    const err = await response.text();
-    return new Response(`ElevenLabs error: ${err}`, { status: 500 });
+    const audio = response.audioContent;
+    if (!audio) return new Response("No audio", { status: 500 });
+
+    return new Response(audio as Buffer, {
+      headers: {
+        "Content-Type": "audio/mpeg",
+        "Cache-Control": "public, max-age=3600",
+      },
+    });
+  } catch (err) {
+    return new Response(`TTS error: ${(err as Error).message}`, { status: 500 });
   }
-
-  const audioBuffer = await response.arrayBuffer();
-  return new Response(audioBuffer, {
-    headers: {
-      "Content-Type": "audio/mpeg",
-      "Cache-Control": "public, max-age=3600",
-    },
-  });
 }
