@@ -21,23 +21,21 @@ function handleAnswer(req: NextRequest) {
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
     <Connect>
-        <Stream url="${streamWsUrl}" />
+        <Stream url="${streamWsUrl}" track="inbound_track" />
     </Connect>
 </Response>`;
     return new Response(xml, { headers: { "Content-Type": "application/xml" } });
   }
 
-  if (!student) {
-    return new Response(buildXml(["Namaste. Yeh Vedantu ka automated call hai. Thank you."]), {
-      headers: { "Content-Type": "application/xml" },
-    });
-  }
-
-  // Build the informational message from student data
-  const message = buildMessage(student);
-  return new Response(buildXml(message), {
-    headers: { "Content-Type": "application/xml" },
-  });
+  // Use ElevenLabs-generated audio served from our /api/voice/[studentId] endpoint
+  const proto = req.headers.get("x-forwarded-proto") ?? "https";
+  const host = req.headers.get("host") ?? "vedantu-ananya.vercel.app";
+  const audioUrl = `${proto}://${host}/api/voice/${student?.id ?? "arjun"}`;
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+    <Play>${audioUrl}</Play>
+</Response>`;
+  return new Response(xml, { headers: { "Content-Type": "application/xml" } });
 }
 
 function buildMessage(student: Student): string[] {
