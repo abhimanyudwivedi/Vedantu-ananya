@@ -20,7 +20,9 @@ function handleAnswer(req: NextRequest) {
     const streamWsUrl = `${wsUrl}?studentId=${studentId}`;
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-    <Stream bidirectional="true" audioTrack="inbound_track">${streamWsUrl}</Stream>
+    <Connect>
+        <Stream url="${streamWsUrl}" />
+    </Connect>
 </Response>`;
     return new Response(xml, { headers: { "Content-Type": "application/xml" } });
   }
