@@ -27,13 +27,17 @@ function handleAnswer(req: NextRequest) {
     return new Response(xml, { headers: { "Content-Type": "application/xml" } });
   }
 
-  // Use ElevenLabs-generated audio served from our /api/voice/[studentId] endpoint
+  // Play the briefing, then gather speech for interactive response
   const proto = req.headers.get("x-forwarded-proto") ?? "https";
   const host = req.headers.get("host") ?? "vedantu-ananya.vercel.app";
-  const audioUrl = `${proto}://${host}/api/voice/${student?.id ?? "arjun"}`;
+  const sid = student?.id ?? "arjun";
+  const audioUrl = `${proto}://${host}/api/voice/${sid}`;
+  const processUrl = `${proto}://${host}/api/call/process?studentId=${sid}&turn=1`;
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
     <Play>${audioUrl}</Play>
+    <Gather input="speech" language="hi-IN" speechTimeout="auto" timeout="6" action="${processUrl}" method="POST"/>
+    <Redirect>${processUrl}</Redirect>
 </Response>`;
   return new Response(xml, { headers: { "Content-Type": "application/xml" } });
 }

@@ -75,16 +75,20 @@ wss.on("connection", (vobizWs: WebSocket, req: IncomingMessage) => {
           onopen: () => {
             console.log("[gemini] Session open");
             geminiReady = true;
-            // Flush any buffered audio
-            for (const chunk of audioQueue) sendToGemini(chunk);
-            audioQueue.length = 0;
-
-            // Kick off the call — Ananya opens the conversation
-            const openingText = `Namaste ${student.parentName} ji! Main Vedantu se Ananya bol rahi hoon. ${student.studentName} ke baare mein kuch update share karna tha — kya aap thodi der baat kar sakte hain?`;
-            geminiSession!.sendClientContent({
-              turns: [{ role: "user", parts: [{ text: `[System: The call just connected. Open the conversation warmly as Ananya. First line: "${openingText}"]` }] }],
-              turnComplete: true,
-            });
+            // Defer until geminiSession variable is assigned (onopen can fire before await resolves)
+            setTimeout(() => {
+              for (const chunk of audioQueue) sendToGemini(chunk);
+              audioQueue.length = 0;
+              const openingText = `Namaste ${student.parentName} ji! Main Vedantu se Ananya bol rahi hoon. ${student.studentName} ke baare mein kuch update share karna tha — kya aap thodi der baat kar sakte hain?`;
+              try {
+                geminiSession?.sendClientContent({
+                  turns: [{ role: "user", parts: [{ text: `[System: The call just connected. Open the conversation warmly as Ananya. First line: "${openingText}"]` }] }],
+                  turnComplete: true,
+                });
+              } catch (e) {
+                console.error("[gemini] sendClientContent failed:", e);
+              }
+            }, 50);
           },
 
           onmessage: (message: LiveServerMessage) => {
