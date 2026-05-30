@@ -55,7 +55,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ stu
     const audio = response.audioContent;
     if (!audio) return new Response("No audio", { status: 500 });
 
-    return new Response(audio as Buffer, {
+    const audioBytes = typeof audio === "string" ? Buffer.from(audio, "base64") : Buffer.from(audio);
+    return new Response(new Uint8Array(audioBytes), {
       headers: {
         "Content-Type": "audio/mpeg",
         "Cache-Control": "public, max-age=3600",
