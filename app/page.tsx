@@ -3,19 +3,23 @@ import { useState } from "react";
 import Link from "next/link";
 import { STUDENTS } from "@/lib/students";
 
-const statusColorMap: Record<string, string> = {
-  "Active": "bg-green-500/10 text-green-400",
-  "Low Attendance Risk": "bg-yellow-500/10 text-yellow-400",
-  "At Risk of Churn": "bg-red-500/10 text-red-400",
-};
-
-const scenarioBorder: Record<string, string> = {
-  amber: "border-amber-500/20 hover:border-amber-500/50",
-  red: "border-red-500/20 hover:border-red-500/50",
-  blue: "border-blue-500/20 hover:border-blue-500/50",
+const statusConfig: Record<string, { label: string; dot: string; bg: string; text: string }> = {
+  "Active":                { label: "Active",               dot: "bg-emerald-500", bg: "bg-emerald-50",  text: "text-emerald-700" },
+  "Low Attendance Risk":   { label: "Low Attendance",       dot: "bg-amber-500",   bg: "bg-amber-50",    text: "text-amber-700"   },
+  "At Risk of Churn":      { label: "At Risk",              dot: "bg-red-500",     bg: "bg-red-50",      text: "text-red-700"     },
 };
 
 type CallStatus = "idle" | "calling" | "connected" | "done" | "error";
+
+const TOPICS = ["Attendance concern", "Test performance", "Homework not submitted", "Topic is too hard", "Progress update", "Other"];
+
+function PhoneIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+      <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+    </svg>
+  );
+}
 
 export default function Home() {
   const [callStatus, setCallStatus] = useState<Record<string, CallStatus>>({});
@@ -23,11 +27,11 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<"scheduled" | "counselling">("scheduled");
   const [counsellingPhone, setCounsellingPhone] = useState("");
   const [counsellingStatus, setCounsellingStatus] = useState<"idle" | "requesting" | "confirmed">("idle");
+  const [selectedTopic, setSelectedTopic] = useState("");
 
   async function triggerCall(studentId: string) {
     const phone = phoneInput[studentId];
-    if (!phone) { alert("Please enter a phone number to call"); return; }
-
+    if (!phone) { alert("Please enter a phone number"); return; }
     setCallStatus((s) => ({ ...s, [studentId]: "calling" }));
     try {
       const res = await fetch("/api/call/initiate", {
@@ -50,148 +54,164 @@ export default function Home() {
     setTimeout(() => setCounsellingStatus("confirmed"), 1500);
   }
 
-  const statusLabel: Record<CallStatus, { label: string; color: string }> = {
-    idle: { label: "", color: "" },
-    calling: { label: "Calling…", color: "text-yellow-400" },
-    connected: { label: "Call Connected ✓", color: "text-green-400" },
-    done: { label: "Call Completed", color: "text-gray-400" },
-    error: { label: "Call Failed", color: "text-red-400" },
-  };
-
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
-      {/* Header */}
-      <div className="border-b border-gray-800 px-4 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center text-white font-black text-sm">V</div>
-          <div>
-            <p className="font-semibold text-sm">Vedantu · Ananya</p>
-            <p className="text-xs text-gray-500">AI Parent Engagement Agent</p>
+    <div className="min-h-screen bg-gray-50 font-sans">
+
+      {/* ── Header ──────────────────────────────────────────────── */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            {/* Vedantu wordmark-style logo */}
+            <div className="flex items-center gap-1.5">
+              <div className="w-7 h-7 rounded-md bg-indigo-600 flex items-center justify-center">
+                <svg viewBox="0 0 20 20" fill="none" className="w-4 h-4">
+                  <path d="M4 5l6 10 6-10" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <span className="font-bold text-gray-900 text-sm tracking-tight">vedantu</span>
+            </div>
+            <span className="text-gray-300 text-sm">/</span>
+            <span className="text-sm text-gray-500 font-medium">Ananya</span>
+          </div>
+
+          <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            Agent live
           </div>
         </div>
-        <div className="flex items-center gap-2 text-xs text-green-400 bg-green-500/10 border border-green-500/20 rounded-full px-3 py-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-          Agent Active
-        </div>
-      </div>
+      </header>
 
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        {/* Tabs */}
-        <div className="flex gap-1 bg-gray-900 border border-gray-800 rounded-xl p-1 mb-6">
-          <button
-            onClick={() => setActiveTab("scheduled")}
-            className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === "scheduled" ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"
-            }`}
-          >
-            📅 Scheduled Calls
-          </button>
-          <button
-            onClick={() => setActiveTab("counselling")}
-            className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === "counselling" ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"
-            }`}
-          >
-            💬 Parent Counselling
-          </button>
+      <div className="max-w-3xl mx-auto px-4 py-6">
+
+        {/* ── Page title ──────────────────────────────────────────── */}
+        <div className="mb-6">
+          <h1 className="text-xl font-bold text-gray-900">Parent Engagement</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Ananya calls parents in Hinglish with personalised progress updates.</p>
         </div>
 
-        {/* Scheduled Calls Tab */}
+        {/* ── Tabs ──────────────────────────────────────────────── */}
+        <div className="flex gap-0 border-b border-gray-200 mb-6">
+          {(["scheduled", "counselling"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 pb-3 pt-1 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === tab
+                  ? "border-indigo-600 text-indigo-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              {tab === "scheduled" ? "Scheduled Calls" : "Parent Counselling"}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Scheduled Calls ───────────────────────────────────── */}
         {activeTab === "scheduled" && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs text-gray-500 uppercase tracking-widest">Today &amp; Upcoming</p>
-              <p className="text-xs text-gray-600">3 calls scheduled</p>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Today &amp; Upcoming</p>
+              <span className="text-xs text-gray-400">3 scheduled</span>
             </div>
 
             {STUDENTS.map((s) => {
-              const status = callStatus[s.id] ?? "idle";
+              const cs = callStatus[s.id] ?? "idle";
               const isToday = s.scheduledAt.startsWith("Today");
+              const sc = statusConfig[s.status];
+
               return (
-                <div
-                  key={s.id}
-                  className={`bg-gray-900 border rounded-2xl overflow-hidden transition-all ${scenarioBorder[s.scenarioColor]}`}
-                >
-                  {/* Card header */}
-                  <div className="p-4 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 font-bold text-base flex-shrink-0">
-                      {s.studentName[0]}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-semibold text-white">{s.studentName}</p>
-                        <span className="text-xs text-gray-500">·</span>
-                        <p className="text-sm text-gray-400">{s.grade}</p>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${statusColorMap[s.status]}`}>
-                          {s.status}
+                <div key={s.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+
+                  {/* Card top */}
+                  <div className="px-5 pt-5 pb-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        {/* Avatar */}
+                        <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm flex-shrink-0">
+                          {s.studentName[0]}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-semibold text-gray-900 text-sm">{s.studentName}</span>
+                            <span className="text-gray-300 text-xs">·</span>
+                            <span className="text-xs text-gray-500">{s.grade}</span>
+                          </div>
+                          <p className="text-xs text-gray-400 mt-0.5">Parent: <span className="text-gray-600">{s.parentName}</span> &nbsp;·&nbsp; {s.targetExam}</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                        <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${sc.bg} ${sc.text}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
+                          {sc.label}
+                        </span>
+                        <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${
+                          isToday ? "bg-indigo-50 text-indigo-600" : "bg-gray-100 text-gray-500"
+                        }`}>
+                          {s.scheduledAt}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-500 mt-0.5">Parent: {s.parentName} · {s.targetExam}</p>
                     </div>
-                    <div className={`text-xs font-medium px-2.5 py-1 rounded-full flex-shrink-0 ${
-                      isToday ? "bg-orange-500/10 text-orange-400 border border-orange-500/20" : "bg-gray-800 text-gray-400"
-                    }`}>
-                      {s.scheduledAt}
+
+                    {/* Insight pills */}
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      <div className="bg-red-50 rounded-xl p-2.5">
+                        <p className="text-[10px] font-semibold text-red-500 uppercase tracking-wide mb-1">Needs Attention</p>
+                        <p className="text-xs text-red-700 leading-snug">{s.corePainPoint.split(" - ")[0]}</p>
+                      </div>
+                      <div className="bg-emerald-50 rounded-xl p-2.5">
+                        <p className="text-[10px] font-semibold text-emerald-600 uppercase tracking-wide mb-1">Bright Spot</p>
+                        <p className="text-xs text-emerald-700 leading-snug">{s.brightSpot.split(" - ")[0]}</p>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Data strip */}
-                  <div className="px-4 pb-3 grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-gray-800/60 rounded-lg p-2.5">
-                      <p className="text-gray-500 mb-1">⚠ Needs Attention</p>
-                      <p className="text-gray-300">{s.corePainPoint.split(" - ")[0]}</p>
-                    </div>
-                    <div className="bg-gray-800/60 rounded-lg p-2.5">
-                      <p className="text-gray-500 mb-1">✓ Bright Spot</p>
-                      <p className="text-gray-300">{s.brightSpot.split(" - ")[0]}</p>
-                    </div>
-                  </div>
-
-                  {/* Call trigger */}
-                  <div className="px-4 pb-4 border-t border-gray-800/60 pt-3 flex items-center gap-3">
+                  {/* Call row */}
+                  <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex items-center gap-2">
                     <input
                       type="tel"
                       placeholder="+91 phone number"
                       value={phoneInput[s.id] ?? ""}
                       onChange={(e) => setPhoneInput((p) => ({ ...p, [s.id]: e.target.value }))}
-                      className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50 min-w-0"
+                      className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent min-w-0"
                     />
                     <button
                       onClick={() => triggerCall(s.id)}
-                      disabled={status === "calling" || status === "connected"}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all flex-shrink-0 ${
-                        status === "calling" || status === "connected"
-                          ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                          : "bg-orange-500 hover:bg-orange-400 text-white"
+                      disabled={cs === "calling" || cs === "connected"}
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all flex-shrink-0 ${
+                        cs === "calling" || cs === "connected"
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm"
                       }`}
                     >
-                      {status === "calling" ? (
-                        <><span className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin" /> Calling…</>
-                      ) : (
-                        <>
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
-                          </svg>
-                          Call Now
-                        </>
-                      )}
+                      {cs === "calling"
+                        ? <><span className="w-3.5 h-3.5 border-2 border-gray-300 border-t-gray-500 rounded-full animate-spin" /> Calling…</>
+                        : <><PhoneIcon className="w-3.5 h-3.5" /> Call Now</>
+                      }
                     </button>
                     <Link
                       href={`/call/${s.id}`}
-                      className="px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white border border-gray-700 hover:border-gray-600 transition-colors flex-shrink-0"
-                      title="Demo conversation"
+                      className="px-3 py-2 rounded-lg text-xs font-medium text-indigo-600 hover:bg-indigo-50 border border-indigo-200 transition-colors flex-shrink-0"
                     >
                       Demo ↗
                     </Link>
                   </div>
 
-                  {/* Status line */}
-                  {status !== "idle" && (
-                    <div className={`px-4 pb-3 text-xs font-medium ${statusLabel[status].color}`}>
-                      {statusLabel[status].label}
-                      {status === "done" && (
-                        <span className="text-gray-500 ml-2">· Next call scheduled in 7 days</span>
-                      )}
+                  {/* Status banner */}
+                  {cs === "connected" && (
+                    <div className="px-5 py-2 bg-emerald-50 border-t border-emerald-100 flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-xs font-medium text-emerald-700">Call connected — Ananya is speaking with {s.parentName}</span>
+                    </div>
+                  )}
+                  {cs === "done" && (
+                    <div className="px-5 py-2 bg-indigo-50 border-t border-indigo-100 flex items-center justify-between">
+                      <span className="text-xs font-medium text-indigo-700">✓ Call completed</span>
+                      <span className="text-xs text-indigo-500">Next call in 7 days</span>
+                    </div>
+                  )}
+                  {cs === "error" && (
+                    <div className="px-5 py-2 bg-red-50 border-t border-red-100">
+                      <span className="text-xs font-medium text-red-600">Call failed — check your vobiz credentials</span>
                     </div>
                   )}
                 </div>
@@ -200,91 +220,106 @@ export default function Home() {
           </div>
         )}
 
-        {/* Parent Counselling Tab */}
+        {/* ── Parent Counselling ────────────────────────────────── */}
         {activeTab === "counselling" && (
           <div className="space-y-4">
-            <div className="bg-orange-500/5 border border-orange-500/20 rounded-2xl p-4 mb-6">
-              <p className="text-sm text-orange-300 font-medium mb-1">📞 What is Parent Counselling?</p>
-              <p className="text-xs text-gray-400 leading-relaxed">
-                Parents can request a live call with Ananya anytime — outside the scheduled 7-day cycle. Ask questions, get deeper clarity, or raise a concern.
-              </p>
+
+            {/* Info banner */}
+            <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex gap-3">
+              <div className="w-9 h-9 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                <PhoneIcon className="w-4 h-4 text-indigo-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-indigo-900">On-demand parent calls</p>
+                <p className="text-xs text-indigo-600 mt-0.5 leading-relaxed">Parents can request a live call with Ananya anytime — outside the 7-day scheduled cycle. Ask questions, raise a concern, get clarity.</p>
+              </div>
             </div>
 
             {counsellingStatus === "confirmed" ? (
-              <div className="bg-green-500/10 border border-green-500/20 rounded-2xl p-6 text-center">
-                <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center text-green-400 text-2xl mx-auto mb-3">✓</div>
-                <p className="text-green-400 font-semibold mb-1">Call Requested!</p>
-                <p className="text-sm text-gray-400">Ananya will call <span className="text-white">{counsellingPhone}</span> within 2 minutes.</p>
+              <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm">
+                <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-7 h-7 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <p className="font-bold text-gray-900 text-lg mb-1">Call Requested</p>
+                <p className="text-sm text-gray-500">Ananya will call <span className="font-semibold text-gray-800">{counsellingPhone}</span> within 2 minutes.</p>
                 <button
-                  onClick={() => { setCounsellingStatus("idle"); setCounsellingPhone(""); }}
-                  className="mt-4 text-xs text-gray-500 hover:text-white transition-colors"
+                  onClick={() => { setCounsellingStatus("idle"); setCounsellingPhone(""); setSelectedTopic(""); }}
+                  className="mt-5 text-xs text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
                 >
-                  Request another call
+                  + Request another call
                 </button>
               </div>
             ) : (
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-                <p className="font-semibold mb-1">Request a call from Ananya</p>
-                <p className="text-sm text-gray-400 mb-5">Enter your registered phone number and Ananya will call you back within 2 minutes.</p>
-
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-xs text-gray-500 uppercase tracking-wider mb-1.5 block">Your Phone Number</label>
-                    <input
-                      type="tel"
-                      placeholder="+91 98765 43210"
-                      value={counsellingPhone}
-                      onChange={(e) => setCounsellingPhone(e.target.value)}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs text-gray-500 uppercase tracking-wider mb-1.5 block">What would you like to discuss?</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {["Attendance concern", "Test performance", "Homework not submitted", "Topic is too hard", "Want progress update", "Other"].map((topic) => (
-                        <button key={topic} className="text-xs bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-orange-500/30 px-3 py-2 rounded-lg transition-colors text-gray-300 text-left">
-                          {topic}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={requestCounselling}
-                    disabled={counsellingStatus === "requesting"}
-                    className="w-full bg-orange-500 hover:bg-orange-400 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
-                  >
-                    {counsellingStatus === "requesting" ? (
-                      <><span className="w-4 h-4 border border-white/40 border-t-white rounded-full animate-spin" /> Requesting…</>
-                    ) : (
-                      <>
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
-                        </svg>
-                        Call Me Now
-                      </>
-                    )}
-                  </button>
+              <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
+                <div>
+                  <p className="font-semibold text-gray-900">Request a call from Ananya</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Ananya will call back within 2 minutes in the parent's preferred language.</p>
                 </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 block">Phone Number</label>
+                  <input
+                    type="tel"
+                    placeholder="+91 98765 43210"
+                    value={counsellingPhone}
+                    onChange={(e) => setCounsellingPhone(e.target.value)}
+                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Topic</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {TOPICS.map((topic) => (
+                      <button
+                        key={topic}
+                        onClick={() => setSelectedTopic(topic === selectedTopic ? "" : topic)}
+                        className={`text-xs px-3 py-2 rounded-lg border text-left transition-all font-medium ${
+                          selectedTopic === topic
+                            ? "bg-indigo-600 border-indigo-600 text-white"
+                            : "bg-white border-gray-200 text-gray-600 hover:border-indigo-300 hover:text-indigo-700"
+                        }`}
+                      >
+                        {topic}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  onClick={requestCounselling}
+                  disabled={counsellingStatus === "requesting"}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white font-semibold py-2.5 rounded-xl transition-colors text-sm flex items-center justify-center gap-2 shadow-sm"
+                >
+                  {counsellingStatus === "requesting"
+                    ? <><span className="w-4 h-4 border-2 border-indigo-300 border-t-white rounded-full animate-spin" /> Requesting…</>
+                    : <><PhoneIcon className="w-4 h-4" /> Call Me Now</>
+                  }
+                </button>
               </div>
             )}
 
-            {/* Next scheduled info */}
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 flex-shrink-0">📅</div>
+            {/* Next scheduled */}
+            <div className="bg-white border border-gray-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm">
+              <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0">
+                <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+              </div>
               <div>
-                <p className="text-sm font-medium">Next scheduled call</p>
-                <p className="text-xs text-gray-400">Ananya will automatically call in <span className="text-white font-medium">7 days</span> with your child's progress update.</p>
+                <p className="text-sm font-semibold text-gray-800">Next scheduled call</p>
+                <p className="text-xs text-gray-500 mt-0.5">Ananya automatically calls every <span className="font-semibold text-gray-700">7 days</span> with a full progress update.</p>
               </div>
             </div>
           </div>
         )}
       </div>
 
-      <p className="text-center text-gray-700 text-xs py-6">
-        Vedantu Hackathon · Ananya AI · Powered by Claude + ElevenLabs + vobiz.ai
-      </p>
+      <footer className="text-center py-8 text-xs text-gray-400">
+        Vedantu · Ananya AI · Powered by Gemini + ElevenLabs + vobiz.ai
+      </footer>
     </div>
   );
 }
