@@ -14,6 +14,17 @@ function handleAnswer(req: NextRequest) {
   const studentId = searchParams.get("studentId") ?? "arjun";
   const student = STUDENTS.find((s) => s.id === studentId);
 
+  // If WS_SERVER_URL is set, use real-time streaming mode
+  const wsUrl = process.env.WS_SERVER_URL;
+  if (wsUrl) {
+    const streamWsUrl = `${wsUrl}?studentId=${studentId}`;
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+    <Stream bidirectional="true" audioTrack="inbound_track">${streamWsUrl}</Stream>
+</Response>`;
+    return new Response(xml, { headers: { "Content-Type": "application/xml" } });
+  }
+
   if (!student) {
     return new Response(buildXml(["Namaste. Yeh Vedantu ka automated call hai. Thank you."]), {
       headers: { "Content-Type": "application/xml" },
