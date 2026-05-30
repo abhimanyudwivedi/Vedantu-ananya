@@ -2,7 +2,7 @@ export type Student = {
   id: string;
   studentName: string;
   parentName: string;
-  parentPhone: string;
+  parentPhone: string;       // real E.164 number for vobiz call
   targetExam: string;
   status: "Active" | "Low Attendance Risk" | "At Risk of Churn";
   attendance: string;
@@ -12,6 +12,8 @@ export type Student = {
   scenario: "anxious" | "churn" | "busy";
   scenarioLabel: string;
   scenarioColor: string;
+  scheduledAt: string;       // human-readable scheduled time label
+  lastCalled: string | null; // ISO date string or null
 };
 
 export const STUDENTS: Student[] = [
@@ -29,6 +31,8 @@ export const STUDENTS: Student[] = [
     scenario: "anxious",
     scenarioLabel: "Anxious Parent",
     scenarioColor: "amber",
+    scheduledAt: "Today, 4:00 PM",
+    lastCalled: null,
   },
   {
     id: "priya",
@@ -44,6 +48,8 @@ export const STUDENTS: Student[] = [
     scenario: "churn",
     scenarioLabel: "Churn Risk Parent",
     scenarioColor: "red",
+    scheduledAt: "Today, 5:30 PM",
+    lastCalled: null,
   },
   {
     id: "rohan",
@@ -59,5 +65,7 @@ export const STUDENTS: Student[] = [
     scenario: "busy",
     scenarioLabel: "Busy / Disinterested Parent",
     scenarioColor: "blue",
+    scheduledAt: "Tomorrow, 10:00 AM",
+    lastCalled: "2026-05-23T10:00:00Z",
   },
 ];
