@@ -32,9 +32,16 @@ function getTtsClient() {
   return new textToSpeech.TextToSpeechClient();
 }
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ studentId: string }> }) {
+function buildGreeting(studentId: string): string {
+  const student = STUDENTS.find((s) => s.id === studentId);
+  if (!student) return "Namaste. Yeh Vedantu ka call hai.";
+  return `Namaste ${student.parentName} ji! Main Vedantu se Ananya bol rahi hoon. ${student.studentName} ke baare mein kuch update share karna tha. Kya aap thodi der baat kar sakte hain?`;
+}
+
+export async function GET(req: NextRequest, { params }: { params: Promise<{ studentId: string }> }) {
   const { studentId } = await params;
-  const text = buildFullMessage(studentId);
+  const isGreeting = new URL(req.url).searchParams.get("greeting") === "1";
+  const text = isGreeting ? buildGreeting(studentId) : buildFullMessage(studentId);
 
   try {
     const client = getTtsClient();

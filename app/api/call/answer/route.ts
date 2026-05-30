@@ -18,10 +18,14 @@ function handleAnswer(req: NextRequest) {
   const wsUrl = process.env.WS_SERVER_URL;
   if (wsUrl) {
     const streamWsUrl = `${wsUrl}?studentId=${studentId}`;
+    const proto = req.headers.get("x-forwarded-proto") ?? "https";
+    const host = req.headers.get("host") ?? "vedantu-ananya.vercel.app";
+    const greetingUrl = `${proto}://${host}/api/voice/${student?.id ?? "arjun"}?greeting=1`;
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
+    <Play>${greetingUrl}</Play>
     <Connect>
-        <Stream url="${streamWsUrl}" track="inbound_track" />
+        <Stream url="${streamWsUrl}" />
     </Connect>
 </Response>`;
     return new Response(xml, { headers: { "Content-Type": "application/xml" } });
