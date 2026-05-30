@@ -15,7 +15,7 @@ function handleAnswer(req: NextRequest) {
   const student = STUDENTS.find((s) => s.id === studentId);
 
   // If WS_SERVER_URL is set, use real-time streaming mode
-  const wsUrl = process.env.WS_SERVER_URL;
+  const wsUrl = process.env.WS_SERVER_URL?.trim();
   if (wsUrl) {
     const streamWsUrl = `${wsUrl}?studentId=${studentId}`;
     const proto = req.headers.get("x-forwarded-proto") ?? "https";

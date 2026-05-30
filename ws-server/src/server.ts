@@ -48,6 +48,8 @@ wss.on("connection", (vobizWs: WebSocket, req: IncomingMessage) => {
   const student = STUDENTS.find((s) => s.id === studentId) ?? STUDENTS[0];
 
   console.log(`[ws-server] New call — student: ${student.studentName}, parent: ${student.parentName}`);
+  // Open Gemini immediately — don't wait for "connected" event
+  openGemini();
 
   let streamSid = "";
   let geminiSession: Awaited<ReturnType<typeof ai.live.connect>> | null = null;
@@ -146,8 +148,12 @@ wss.on("connection", (vobizWs: WebSocket, req: IncomingMessage) => {
     try {
       msg = JSON.parse(raw.toString());
     } catch {
+      console.log("[vobiz] non-JSON message:", raw.toString().slice(0, 200));
       return;
     }
+
+    // Debug: log every event type seen
+    if (msg.event && msg.event !== "media") console.log("[vobiz] event:", msg.event, JSON.stringify(msg).slice(0, 300));
 
     switch (msg.event) {
       case "connected":
