@@ -17,7 +17,7 @@ function handleAnswer(req: NextRequest) {
   // If WS_SERVER_URL is set, use real-time streaming mode
   const wsUrl = process.env.WS_SERVER_URL?.trim();
   if (wsUrl) {
-    const streamWsUrl = `${wsUrl}?studentId=${studentId}`;
+    const streamWsUrl = `${wsUrl}/stream/${studentId}`;
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
     <Connect>

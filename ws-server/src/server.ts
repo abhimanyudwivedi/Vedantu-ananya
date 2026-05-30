@@ -44,7 +44,9 @@ console.log(`[ws-server] Listening on ws://localhost:${PORT}`);
 wss.on("connection", (vobizWs: WebSocket, req: IncomingMessage) => {
   // Extract studentId from query string: ?studentId=arjun
   const url = new URL(req.url ?? "/", `http://localhost`);
-  const studentId = url.searchParams.get("studentId") ?? "arjun";
+  // Support both ?studentId=X and /stream/X path
+  const pathMatch = url.pathname.match(/\/stream\/([^/]+)/);
+  const studentId = pathMatch?.[1] ?? url.searchParams.get("studentId") ?? "arjun";
   const student = STUDENTS.find((s) => s.id === studentId) ?? STUDENTS[0];
 
   console.log(`[ws-server] New call — student: ${student.studentName}, parent: ${student.parentName}`);
